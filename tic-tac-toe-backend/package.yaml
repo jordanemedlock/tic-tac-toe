@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.7 && < 5
 - scotty
 - text
+- persistent
+- persistent-sqlite
 
 library:
   source-dirs: src
@@ -36,6 +38,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - argparser
     - tic-tac-toe-backend
 
 tests:
@@ -48,3 +51,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - tic-tac-toe-backend
+
+default-extensions:
+- OverloadedStrings
+- LambdaCase

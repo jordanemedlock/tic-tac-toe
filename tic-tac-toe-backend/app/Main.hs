@@ -1,14 +1,23 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import qualified Web.Scotty.Trans as S
 import Data.Text.Lazy (Text)
+import System.Console.ArgParser
+import TicTacToe.Models
+import TicTacToe.Routes
+import Database.Persist.Sqlite
+
+
+data Command = MigrateAll | RunServer deriving Show
+
+commandParser = mkSubParser [ ("migrate-all", mkDefaultApp (pure MigrateAll) "migrate-all")
+                            , ("run-server", mkDefaultApp (pure RunServer) "run-server")
+                            ]
 
 main :: IO ()
-main = S.scottyT 5000 id routes
+main = do
+    parser <- commandParser
+    runApp parser $ \case
+        MigrateAll -> runSqlite "data.db" $ runMigration migrateAll
+        RunServer -> S.scottyT 5000 id allRoutes
 
-
-routes :: S.ScottyT Text IO ()
-routes = do
-    S.get "/1/" $ do
-        S.text "Hello World!"
