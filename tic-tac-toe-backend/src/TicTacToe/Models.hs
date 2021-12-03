@@ -10,6 +10,8 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module TicTacToe.Models where
 
@@ -20,6 +22,12 @@ import Database.Persist.Sqlite
 import Database.Persist.TH
 import qualified Data.Text as T
 import Text.Read (readEither)
+import GHC.Generics
+import Data.Aeson
+import Control.Monad.Reader (ReaderT, lift)
+import Database.Persist.SqlBackend.Internal (SqlBackend)
+import Control.Monad.Logger (NoLoggingT)
+import Conduit (ResourceT)
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -28,7 +36,7 @@ User
     email String
     password String
     UniqueEmail email
-    deriving Show
+    deriving Show Generic
 Player
     userId UserId
     gameId GameId
@@ -36,21 +44,35 @@ Player
     playOrder Int
     UniqueGameAndCode gameId playerCode
     UniqueGameOrder gameId playOrder
-    deriving Show
+    deriving Show Generic
 Game
     gameCode String
     size Size
     UniqueGameCode gameCode
-    deriving Show
+    deriving Show Generic
 Move
     playerId PlayerId
     gameId GameId
     movePos Position
     UniqueMove gameId movePos
-    deriving Show
+    deriving Show Generic
 |]
 
-data Size = Size Int Int deriving Show
+instance FromJSON User
+instance ToJSON User
+instance FromJSON Player
+instance ToJSON Player
+instance FromJSON Game
+instance ToJSON Game
+instance FromJSON Move
+instance ToJSON Move
+instance FromJSON Size
+instance ToJSON Size
+instance FromJSON Position
+instance ToJSON Position
+
+
+data Size = Size Int Int deriving (Show, Generic)
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)
@@ -69,7 +91,7 @@ instance PersistField Size where
 instance PersistFieldSql Size where
     sqlType _ = SqlString
 
-data Position = Position Int Int deriving Show
+data Position = Position Int Int deriving (Show, Generic)
 
 instance PersistFieldSql Position where
     sqlType _ = SqlString
@@ -77,3 +99,25 @@ instance PersistFieldSql Position where
 instance PersistField Position where
     toPersistValue (Position x y) = PersistText $ T.pack $ show x <> "," <> show y
     fromPersistValue = parsePair Position
+
+instance FromJSON (Entity User) where
+    parseJSON = entityIdFromJSON
+instance ToJSON (Entity User) where
+    toJSON = entityIdToJSON
+instance FromJSON (Entity Player) where
+    parseJSON = entityIdFromJSON
+instance ToJSON (Entity Player) where
+    toJSON = entityIdToJSON
+instance FromJSON (Entity Game) where
+    parseJSON = entityIdFromJSON
+instance ToJSON (Entity Game) where
+    toJSON = entityIdToJSON
+instance FromJSON (Entity Move) where
+    parseJSON = entityIdFromJSON
+instance ToJSON (Entity Move) where
+    toJSON = entityIdToJSON
+
+type Persist = ReaderT SqlBackend (NoLoggingT (ResourceT IO))
+
+toKey :: ToBackendKey SqlBackend a => Integer -> Key a
+toKey i = toSqlKey (fromIntegral i)

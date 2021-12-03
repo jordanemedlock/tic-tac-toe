@@ -25,6 +25,11 @@ dependencies:
 - text
 - persistent
 - persistent-sqlite
+- mtl
+- monad-logger
+- conduit
+- aeson
+- http-types
 
 library:
   source-dirs: src

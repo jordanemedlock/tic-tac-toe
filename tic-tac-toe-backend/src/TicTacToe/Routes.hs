@@ -6,8 +6,9 @@ import qualified TicTacToe.Routes.Games as Games
 import qualified TicTacToe.Routes.Moves as Moves
 import qualified TicTacToe.Routes.Players as Players
 import qualified TicTacToe.Routes.Users as Users
+import Database.Persist.Sql (SqlPersistM)
 
-allRoutes :: ScottyT Text IO ()
+allRoutes :: ScottyT Text SqlPersistM ()
 allRoutes = do
     get "/1/" $ do
         text "Hello World!"
