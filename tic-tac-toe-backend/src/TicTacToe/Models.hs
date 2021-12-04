@@ -40,28 +40,28 @@ User
 Player
     userId UserId
     gameId GameId
-    playerCode String
-    playOrder Int
-    UniqueGameAndCode gameId playerCode
-    UniqueGameOrder gameId playOrder
+    code String
+    order Int
+    UniqueGameAndCode gameId code
+    UniqueGameOrder gameId order
     deriving Show Generic
 Game
-    gameCode String
+    code String
     size Size
-    UniqueGameCode gameCode
+    UniqueGameCode code
     deriving Show Generic
 Move
     playerId PlayerId
     gameId GameId
-    movePos Position
-    UniqueMove gameId movePos
+    pos Position
+    UniqueMove gameId pos
     deriving Show Generic
 |]
 
 instance FromJSON User
 instance ToJSON User
 instance FromJSON Player
-instance ToJSON Player
+instance ToJSON Player 
 instance FromJSON Game
 instance ToJSON Game
 instance FromJSON Move
